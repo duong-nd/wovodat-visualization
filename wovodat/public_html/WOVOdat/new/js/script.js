@@ -1,5 +1,11 @@
-var ONE_YEAR =  ((new Date("0002-01-01T00:00:00")).getTime()-(new Date("0001-01-01T00:00:00")).getTime());
-
+var ONE_YEAR = ((new Date("0002-01-01T00:00:00")).getTime() - (new Date("0001-01-01T00:00:00")).getTime());
+var ds_plot = [];
+ds_plot.push("#data_series_graph1");
+ds_plot.push("#data_series_graph2");
+ds_plot.push("#data_series_graph3");
+var ds_plot_graph = [];
+vd_cavw = [];
+var ds_overview_plot;
 function showTooltip(x, y, contents) {
     $('<div id="tooltip">' + contents + '</div>').css( {
         position: 'absolute',
@@ -13,36 +19,62 @@ function showTooltip(x, y, contents) {
     }).appendTo("body").fadeIn(200);
 }
 
-$(document).ready(function() {
-	DataPuller.getVolcanoList({handler: loadVolcano});
+function convertDate(d) {
+	var m = d.getMonth()+1;
+	m = (m < 10)? '0' + m.toString() : m.toString();
+	date = d.getDate();
+	date = (date < 10)? '0' + date.toString() : date.toString();
+	return (d.getFullYear() + '-' + m + '-' + date);
+}
 
+loadvd = function loadVolcano(args) {
+	var data = args.data;
+	var volcanoSelect = $("#volcano");
+	volcanoSelect.empty();
+	volcanoSelect.append(new Option("...", ""));
+	for (var i = 0; i < data.length; i++) {
+		var option = new Option(data[i]['vd_id'] + ". "+ data[i]['vd_name'], data[i]['vd_id']);
+		option.setAttribute("cavw", data[i]['vd_cavw']);
+		volcanoSelect.append(option);
+		vd_cavw[data[i]['vd_id']] = data[i]['vd_cavw'];
+	}
+}
+function getVdList () {
+	loading = $.Deferred();
+	DataPuller.getVolcanoList({handler: loadvd});
+	test = "abc";
+	loading.resolve();
+	return loading;
+}
+$(document).ready(function () {
+
+	
+	getVdList().done( function () {
+
+	} ) ;
 	/*
 	*	load the volcano list
 	*
 	*/
-	function loadVolcano(args) {
-		var data = args.data;
-		var volcanoSelect = $("#volcano");
-		volcanoSelect.empty();
-		volcanoSelect.append(new Option("...", ""));
-		for (var i = 0; i < data.length; i++) {
-			var option = new Option(data[i]['vd_id'] + ". "+ data[i]['vd_name'], data[i]['vd_id']);
-			volcanoSelect.append(option);
-		}
-	}
-
+	
+	
 	/*
 	*	when user select a volcano
 	*/
 	$("#volcano").change(function() {
+		console.log($('#volcano'));
 		eruptionSelect = $('#eruptionselect');
 		eruptionSelect.empty();
 		eruptionSelect.append(new Option("...", null));
-
+		$('#data_series_checkbox').empty();
+	
 		var volcano = $("#volcano").val();
+		console.log($("#volcano option:selected"));
+		cavw = $("#volcano option:selected").attr("cavw");
+		
 		DataPuller.getEruptionList({vd_id: volcano, handler: plotEruption});
 		DataPuller.getEruptionForecastList({vd_id: volcano, handler: plotEruptionForecast});
-		DataPuller.getDataList({vd_id: volcano, handler: plotDataSeries});
+		DataPuller.getDataList({vd_id: volcano, vd_cavw: cavw, handler: plotOverview});
 	});
 
 	$("#eruptionselect").change(function() {
@@ -54,13 +86,9 @@ $(document).ready(function() {
 		$.extend(eruption_plot.getAxes().xaxis.options, ntime);
 		eruption_plot.setupGrid();
 		eruption_plot.draw();
-
-		$.extend(eruption_forecast_plot.getAxes().xaxis.options, ntime);
-		eruption_forecast_plot.setupGrid();
-		eruption_forecast_plot.draw();
-
-
+		sync();
 	});
+	
 	var sync = function () {
 		stime = eruption_plot.getAxes().xaxis.options.min;
 		etime = eruption_plot.getAxes().xaxis.options.max;
@@ -68,9 +96,16 @@ $(document).ready(function() {
 		$.extend(eruption_forecast_plot.getAxes().xaxis.options, ntime);
 		eruption_forecast_plot.setupGrid();
 		eruption_forecast_plot.draw();
-
+		if (ds_overview_plot) {
+			$.extend(ds_overview_plot.getAxes().xaxis.options, ntime);
+			ds_overview_plot.setupGrid();
+			ds_overview_plot.draw();
+			$.extend(ds_plot_graph[0].getAxes().xaxis.options, ntime);
+			ds_plot_graph[0].setupGrid();
+			ds_plot_graph[0].draw();
+		}
 	}
+	
 	$("#eruption_graph").bind("plotpan", sync);
-
 	$("#eruption_graph").bind("plotzoom", sync);
 });

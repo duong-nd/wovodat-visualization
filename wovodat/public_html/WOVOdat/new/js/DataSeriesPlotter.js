@@ -1,5 +1,80 @@
-function plotDataSeries(args) {
-	console.log("plot series");
+function plotDataSeries(args, ranges) {
+	
+	var data = args.data.data_series;
+	var data_series = [];
+	
+	function convertDate(d) {
+		var m = d.getMonth()+1;
+		m = (m < 10)? '0' + m.toString() : m.toString();
+		date = d.getDate();
+		date = (date < 10)? '0' + date.toString() : date.toString();
+		return (d.getFullYear() + '-' + m + '-' + date);
+	}
+
+	function initData() {
+		for(var i in data) {
+			var ds = data[i];
+			ds.component_data = parseInt(ds.component_data);
+			data_series.push([ds.stime, ds.component_data, 0, ds.etime - ds.stime, ds]);
+		}
+	}
+
+	initData();
+
+	var param_ds = {
+		color: "Blue",
+		label: "Data Series",
+		data: data_series,
+		bars: {
+			show: true,
+			wovodat: true
+		},
+		dataType: "ds"
+	};
+	
+	var option = {
+		grid: {
+			hoverable: true,
+		},
+		xaxis: {
+			min: eruption_plot.getAxes().xaxis.options.min,
+			max: eruption_plot.getAxes().xaxis.options.max,
+			autoscale: false,
+			mode: "time",
+			timeformat: "%Y-%m",
+			tickSize: [1, "month"]
+			
+			//timeformat: "%Y-%m-%d %H:%M:%S"
+		},
+		yaxis: {
+			min: 0,
+			max: 200,
+			autoscale: true,
+			panRange: false,
+			zoomRange: false,
+			//tickFormatter: function(val, axis) { return val < axis.max ? val.toFixed(2) : "VEI";}
+		},
+	};
+	
+	window.data_series_plot = $.plot($("#data_series_graph"), [param_ds], option);
+	$("#data_series_graph").bind("plothover", function(event, pos, item) {
+		if (item) {
+            $("#tooltip").remove();
+            var content;
+    		
+    		var ds = item.series.data[item.dataIndex][4];
+    		content = ds.component_data + "<br/>";
+    		content += convertDate(new Date(ds.stime));
+    		content += " to ";
+    		content += convertDate(new Date(ds.etime));
+
+            showTooltip(pos.pageX, pos.pageY, content);
+        } else {
+            $("#tooltip").remove();
+            previousItem = null;            
+        }	
+    });
+
 }
 /**	var data = args.data;
 
