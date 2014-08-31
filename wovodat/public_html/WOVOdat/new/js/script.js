@@ -49,9 +49,7 @@ var Observer = function() {
 	var events = [];
 	return {
 		notify: function(event, args) {
-			var i,
-				j;
-			console.log(event);
+			var i, j;
 			for (i = 0; i < events.length; i += 1) {
 				if (events[i].name === event) {
 					for (j = 0; j < events[i].callbacks.length; j += 1) {
@@ -84,20 +82,23 @@ $(document).ready(function () {
 	// Load preset param
 	(function() {
 		var preset_vd_id = getUrlParam("vd_id"),
-			stime = getUrlParam("stime"),
-			changed = false,
+			preset_stime = getUrlParam("stime"),
+			changed_time = false,
+			changed_volcano = false,
 			eruption_plot_done = false,
 			eruption_forecast_plot_done = false,
 			overview_plot_done = false,
 			all_done_callback = function() {
-				if (changed === false && eruption_plot_done && eruption_forecast_plot_done && overview_plot_done) {
-					changed = true;
-					$("#eruptionselect").val(stime).change();
+				if (preset_vd_id && preset_stime && changed_time === false && eruption_plot_done && eruption_forecast_plot_done && overview_plot_done) {
+					changed_time = true;
+					$("#eruptionselect").val(preset_stime).change();
 				}
 			};
 		Observer.register("get-volcano-list-done", function() {
-			if (preset_vd_id)
+			if (changed_volcano === false && preset_vd_id) {
+				changed_volcano = true;
 				$("#volcano").val(preset_vd_id).change();
+			}
 		});
 		Observer.register("eruption-forecast-plot-done", function() {
 			eruption_forecast_plot_done = true;
@@ -111,7 +112,6 @@ $(document).ready(function () {
 			overview_plot_done = true;
 			all_done_callback();
 		});
-
 	}());
 
 	DataPuller.getVolcanoList({handler: function(args) {
@@ -131,14 +131,12 @@ $(document).ready(function () {
 	*	when user select a volcano
 	*/
 	$("#volcano").change(function() {
-		console.log($('#volcano'));
 		eruptionSelect = $('#eruptionselect');
 		eruptionSelect.empty();
 		eruptionSelect.append(new Option("...", null));
 		$('#data_series_checkbox').empty();
 	
-		var volcano = $("#volcano").val();
-		console.log($("#volcano option:selected"));
+		var volcano = $("#volcano").val();	
 		cavw = $("#volcano option:selected").attr("cavw");
 		
 		DataPuller.getEruptionList({vd_id: volcano, handler: plotEruption});

@@ -1,7 +1,6 @@
 
 function plotEruption(args) {
 	var data = args.data;
-	
 	var ed_data = [];
 	var ed_phs_data = [];
 	var end_of_time = 0;
@@ -106,6 +105,7 @@ function plotEruption(args) {
 			interactive: true
 		}
 	};
+
 	window.eruption_plot = $.plot($("#eruption_graph"), [param_ed, param_ed_phs], option);
     $("#eruption_graph").bind("plothover", function (event, pos, item) {
     	if (item) {

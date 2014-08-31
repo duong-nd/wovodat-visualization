@@ -12,8 +12,6 @@ function convert(str) {
 		} 
 		if (temp[5]) stn.component = temp[5];
 		if (temp[0].length < 2) break;
-		console.log(temp);
-		//DataPuller.getStationData({sinfo: stn,handler: function (args) {data.push({	station: args.sinfo,	data_series : args.data,	});
 		data.push({
 			station: stn
 		});		
@@ -22,7 +20,6 @@ function convert(str) {
 }
 
 function plotOverview(args) {
-	console.log(args.data);
 	ds_data = [];
 	var data_stn = convert(args.data);
 	
@@ -34,7 +31,6 @@ function plotOverview(args) {
 	window.ds_selection_box = $("#data_series_checkbox");
 	
 	$.each(data_stn, function(key, val) {
-		console.log(key);		console.log(val);
 		$("#data_series_checkbox").append("<input type='checkbox' name='" + key +
 			"' id='id" + key + "'></input>" +
 			"<label for='id" + key + "'>"
@@ -176,7 +172,6 @@ function plotOverview(args) {
 	}
 	
 	function updateGraph(args) {
-		console.log(args);
 		ds_data.push({data: args.data[0], key : args.key});
 		redrawGraph();
 	}
