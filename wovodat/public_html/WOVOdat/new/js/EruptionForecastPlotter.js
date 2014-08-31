@@ -68,4 +68,6 @@ function plotEruptionForecast(args) {
             previousItem = null;            
         }	
     });
+
+    Observer.notify("eruption-forecast-plot-done");
 }

@@ -22,6 +22,7 @@ function convert(str) {
 }
 
 function plotOverview(args) {
+	console.log(args.data);
 	ds_data = [];
 	var data_stn = convert(args.data);
 	
@@ -194,4 +195,6 @@ function plotOverview(args) {
 			redrawGraph();
 		}
 	}
+
+	Observer.notify("overview-plot-done");
 }

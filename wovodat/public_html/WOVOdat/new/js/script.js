@@ -27,36 +27,105 @@ function convertDate(d) {
 	return (d.getFullYear() + '-' + m + '-' + date);
 }
 
-loadvd = function loadVolcano(args) {
-	var data = args.data;
-	var volcanoSelect = $("#volcano");
-	volcanoSelect.empty();
-	volcanoSelect.append(new Option("...", ""));
-	for (var i = 0; i < data.length; i++) {
-		var option = new Option(data[i]['vd_id'] + ". "+ data[i]['vd_name'], data[i]['vd_id']);
-		option.setAttribute("cavw", data[i]['vd_cavw']);
-		volcanoSelect.append(option);
-		vd_cavw[data[i]['vd_id']] = data[i]['vd_cavw'];
-	}
+function getUrlParam(param) {
+	var query_string = {};
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i=0; i<vars.length; i++) {
+		var pair = vars[i].split("=");
+		if (typeof query_string[pair[0]] === "undefined") {
+			query_string[pair[0]] = pair[1];
+		} else if (typeof query_string[pair[0]] === "string") {
+			var arr = [ query_string[pair[0]], pair[1] ];
+			query_string[pair[0]] = arr;
+		} else {
+			query_string[pair[0]].push(pair[1]);
+		}
+	} 
+    return query_string[param];
 }
-function getVdList () {
-	loading = $.Deferred();
-	DataPuller.getVolcanoList({handler: loadvd});
-	test = "abc";
-	loading.resolve();
-	return loading;
-}
+
+var Observer = function() {
+	var events = [];
+	return {
+		notify: function(event, args) {
+			var i,
+				j;
+			console.log(event);
+			for (i = 0; i < events.length; i += 1) {
+				if (events[i].name === event) {
+					for (j = 0; j < events[i].callbacks.length; j += 1) {
+						events[i].callbacks[j](args);
+					}
+				}
+			}
+		},
+		register: function(event, callback) {
+			var i,
+				found = false;
+			for (i = 0; i < events.length; i += 1) {
+				if (events[i].name === event) {
+					events[i].callbacks.push(callback);
+					found = true;
+				}
+			}
+			if (found === false) {
+				events.push({
+					name: event,
+					callbacks: [callback]
+				});
+			}
+		}
+	};
+}();
+
 $(document).ready(function () {
-
 	
-	getVdList().done( function () {
+	// Load preset param
+	(function() {
+		var preset_vd_id = getUrlParam("vd_id"),
+			stime = getUrlParam("stime"),
+			changed = false,
+			eruption_plot_done = false,
+			eruption_forecast_plot_done = false,
+			overview_plot_done = false,
+			all_done_callback = function() {
+				if (changed === false && eruption_plot_done && eruption_forecast_plot_done && overview_plot_done) {
+					changed = true;
+					$("#eruptionselect").val(stime).change();
+				}
+			};
+		Observer.register("get-volcano-list-done", function() {
+			if (preset_vd_id)
+				$("#volcano").val(preset_vd_id).change();
+		});
+		Observer.register("eruption-forecast-plot-done", function() {
+			eruption_forecast_plot_done = true;
+			all_done_callback();
+		});
+		Observer.register("eruption-plot-done", function() {
+			eruption_plot_done = true;
+			all_done_callback();
+		});
+		Observer.register("overview-plot-done", function() {
+			overview_plot_done = true;
+			all_done_callback();
+		});
 
-	} ) ;
-	/*
-	*	load the volcano list
-	*
-	*/
-	
+	}());
+
+	DataPuller.getVolcanoList({handler: function(args) {
+		var data = args.data;
+		var volcanoSelect = $("#volcano");
+		volcanoSelect.empty();
+		volcanoSelect.append(new Option("...", ""));
+		for (var i = 0; i < data.length; i++) {
+			var option = new Option(data[i]['vd_id'] + ". "+ data[i]['vd_name'], data[i]['vd_id']);
+			volcanoSelect.append(option);
+		}
+		Observer.notify("get-volcano-list-done");
+	}});
+
 	
 	/*
 	*	when user select a volcano
@@ -108,4 +177,7 @@ $(document).ready(function () {
 	
 	$("#eruption_graph").bind("plotpan", sync);
 	$("#eruption_graph").bind("plotzoom", sync);
+
+	
+
 });

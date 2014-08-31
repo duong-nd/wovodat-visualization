@@ -150,6 +150,8 @@ function plotEruption(args) {
         }
     });
 
+	Observer.notify("eruption-plot-done");
+
 	//when user selects an eruption
 /*	$("#eruptionselect").change(function() {
 		if ($('#eruptionselect option:selected').text() === "...") {return 0;}
