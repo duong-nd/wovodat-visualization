@@ -53,6 +53,19 @@ DataPuller.getEruptionForecastList = function(args) {
 
 DataPuller.getDataList = function(args) {
 	var vd_id = args.vd_id;
+	var cavw = args.vd_cavw;
+	var handler = args.handler;
+	$.ajax({
+		type: "GET",
+		url: "/php/switch.php?get=TimeSeriesForVolcano&cavw=" + cavw,
+	}).done(function(result) {
+		args.data = result;
+		handler(args);
+	});
+}
+/*
+DataPuller.getDataList = function(args) {
+	var vd_id = args.vd_id;
 	var handler = args.handler;
 	$.ajax({
 		type: "POST",
@@ -64,7 +77,23 @@ DataPuller.getDataList = function(args) {
 		dataType: "json"
 	}).done(function(result) {
 		args.data = result;
-		console.log(result);
+		handler(args);
+	});
+}
+*/
+DataPuller.getStationData = function(args) {
+	var handler = args.handler;
+	stn = args.sinfo.station;
+	urlstr = "/php/switch.php?get=StationData&type=" + stn.type +
+				"&table=" + stn.table + "&code=" + stn.code;
+	
+	if (stn.component) urlstr = urlstr + "&component=" + stn.component;
+	$.ajax({
+		type: "GET",
+		url: urlstr,
+		dataType: "json"
+	}).done(function(result) {
+		args.data = result;
 		handler(args);
 	});
 }
