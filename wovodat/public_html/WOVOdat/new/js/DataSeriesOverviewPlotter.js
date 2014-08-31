@@ -22,7 +22,7 @@ function convert(str) {
 function plotOverview(args) {
 	ds_data = [];
 	var data_stn = convert(args.data);
-	
+	console.log(data_stn);
 	data_series = [];
 	
 	var max_data = -1000;

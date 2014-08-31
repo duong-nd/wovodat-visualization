@@ -121,6 +121,7 @@ $(document).ready(function () {
 		volcanoSelect.append(new Option("...", ""));
 		for (var i = 0; i < data.length; i++) {
 			var option = new Option(data[i]['vd_id'] + ". "+ data[i]['vd_name'], data[i]['vd_id']);
+			option.setAttribute("cavw", data[i]['vd_cavw']);			
 			volcanoSelect.append(option);
 		}
 		Observer.notify("get-volcano-list-done");
@@ -136,7 +137,7 @@ $(document).ready(function () {
 		eruptionSelect.append(new Option("...", null));
 		$('#data_series_checkbox').empty();
 	
-		var volcano = $("#volcano").val();	
+		var volcano = $("#volcano").val();
 		cavw = $("#volcano option:selected").attr("cavw");
 		
 		DataPuller.getEruptionList({vd_id: volcano, handler: plotEruption});
